@@ -112,6 +112,8 @@ void Vehicle::publish(const double sim_time) {
 }
 
 void Vehicle::update(const double dt) {
+    const double max_steer = 30*M_PI/180.0;
+    const double steer_tau = 0.05;
     //static ros::Time t_past = ros::Time::now();
     const auto t_now = ros::Time::now();
     //const double dt_new = (t_now - t_past).toSec();
@@ -140,6 +142,23 @@ void Vehicle::update(const double dt) {
     // Brake if cmd are not coming
     input_.dc = car_info_.torque_ok && (t_now - time_last_cmd_).toSec() < 1.0 ? input_.dc : -1.0;
 
+    const double prev_steer  = front_axle_.getSteering();
+    const double steer_speed = (input_.delta - prev_steer)/steer_tau;
+    double mean_steer  = prev_steer + steer_speed * dt/2.;    
+    double final_steer = prev_steer + steer_speed * dt;
+    if(final_steer > max_steer){
+        final_steer = max_steer;
+    }
+    if(final_steer < -max_steer){
+        final_steer = -max_steer;
+    }
+    if(mean_steer > max_steer){
+        mean_steer = max_steer;
+    }
+    if(mean_steer < -max_steer){
+        mean_steer = -max_steer;
+    }
+    input_.delta = mean_steer;
     double Fz = getNormalForce(state_);
 
     // Tire Forces
@@ -171,6 +190,8 @@ void Vehicle::update(const double dt) {
     pub_ground_truth_.publish(state_pub);
 
     publishCarInfo(alphaF, alphaR, FyF, FyR, Fx);
+    input_.delta = final_steer;
+    front_axle_.setSteering(input_.delta);
 }
 
 void Vehicle::onRes(const fssim_common::ResStateConstPtr &msg) {
@@ -292,6 +313,7 @@ void Vehicle::onInitialPose(const geometry_msgs::PoseWithCovarianceStamped &msg)
     state_.y   = msg.pose.pose.position.y;
     state_.yaw = tf::getYaw(msg.pose.pose.orientation);
     state_.v_x = state_.v_y = state_.r = state_.a_x = state_.a_y = 0.0;
+    front_axle_.setSteering(0.0);
 }
 
 double Vehicle::getNormalForce(const State &x) {
@@ -333,17 +355,25 @@ void Vehicle::publishCarInfo(const AxleTires &alphaF,
     car_info.alpha_f_l = alphaF.left;
     car_info.alpha_f_r = alphaF.right;
 
+    car_info.vx = state_.v_x;
+    car_info.vy = state_.v_y;
+    car_info.r  = state_.r;
+
     car_info.Fy_f   = FyF.avg();
     car_info.Fy_f_l = FyF.left;
     car_info.Fy_f_r = FyF.right;
 
-    car_info.alpha_r   = alphaR.avg();
-    car_info.alpha_r_l = alphaR.left;
-    car_info.alpha_r_r = alphaR.right;
+    car_info.alpha_f   = alphaF.avg();
+    car_info.alpha_f_l = alphaF.left;
+    car_info.alpha_f_r = alphaF.right;
 
     car_info.Fy_r   = FyR.avg();
     car_info.Fy_r_l = FyR.left;
     car_info.Fy_r_r = FyR.right;
+
+    car_info.alpha_r   = alphaR.avg();
+    car_info.alpha_r_l = alphaR.left;
+    car_info.alpha_r_r = alphaR.right;
 
     car_info.Fx = Fx;
     pub_car_info_.publish(car_info);

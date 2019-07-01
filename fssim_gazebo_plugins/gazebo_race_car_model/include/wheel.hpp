@@ -68,6 +68,8 @@ class Wheel {
 
     virtual void setAngle(const double delta) {}
 
+    virtual double getAngle() { return 0; }
+
     const math::Vector3 &getCenterPos() const;
 
  private:

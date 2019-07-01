@@ -42,12 +42,15 @@ class WheelStearing : public Wheel {
         max_steer_            = 1.0;
         std::string full_name = _model->GetName() + "::" + _sdf->Get<std::string>(_name + "_steering");
         getJoint(steering_joint_, _model, full_name);
+        delta_ = 0;
     }
 
     void setAngle(const double delta) override {
+        delta_ = delta;
         steering_joint_->SetPosition(0, delta);
     }
 
+    double getAngle() { return delta_; }
     void printInfo() override {
         Wheel::printInfo();
         ROS_DEBUG("\t - STEERING");
@@ -56,7 +59,7 @@ class WheelStearing : public Wheel {
     bool isSteering() override { return true; }
 
  private:
-
+    double delta_;
     physics::JointPtr steering_joint_;      // Joint Holder
 
     double max_steer_;                      // Maximal steering angle [rad]

@@ -91,6 +91,11 @@ void Axle<WheelType>::getFy(const State &x, const Input &u, const double Fz, Axl
 }
 
 template<class WheelType>
+double Axle<WheelType>::getSteering(){
+    return 0.5*( wheel_l_.getAngle() + wheel_r_.getAngle());
+}
+
+template<class WheelType>
 void Axle<WheelType>::setSteering(const double delta) {
     wheel_l_.setAngle(delta);
     wheel_r_.setAngle(delta);
