@@ -115,6 +115,7 @@ void Vehicle::publish(const double sim_time) {
 void Vehicle::update(const double dt) {
     const double max_steer = 30*M_PI/180.0;
     const double steer_tau = 0.1;
+
     //static ros::Time t_past = ros::Time::now();
     const auto t_now = ros::Time::now();
     //const double dt_new = (t_now - t_past).toSec();
@@ -160,6 +161,7 @@ void Vehicle::update(const double dt) {
         mean_steer = -max_steer;
     }
     input_.delta = mean_steer;
+
     double Fz = getNormalForce(state_);
 
     // Tire Forces
@@ -354,6 +356,7 @@ void Vehicle::publishCarInfo(const AxleTires &alphaF,
     car_info.down_force = down_force;
     car_info.dc        = input_.dc;
     car_info.delta     = front_axle_.getSteering();
+
     car_info.alpha_f   = alphaF.avg();
     car_info.alpha_f_l = alphaF.left;
     car_info.alpha_f_r = alphaF.right;
