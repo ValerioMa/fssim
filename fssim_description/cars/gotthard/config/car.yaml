@@ -42,10 +42,18 @@ car:
   # y=D*sin(C*atan(B*(1-E)*x+E*atan(B*x)))
   tire:
     tire_coefficient: 1.0
-    B: 12.56
-    C: -1.38
-    D: 1.60
-    E: -0.58
+
+# ORIGINAL FSSIM
+#    B: 12.56
+#    C: -1.38
+#    D: 1.60
+#    E: -0.58
+
+# Dry tarmac matlab
+    B: -10.  # the minus sign is to be conform fssim convention
+    C: 1.9
+    D: 1.0
+    E: 0.97
 
   aero:
     C_Down: # F_Downforce = C_Downforce*v_x^2; C_Downforce = a*b*c
