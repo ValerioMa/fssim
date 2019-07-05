@@ -50,7 +50,7 @@ class WheelStearing : public Wheel {
         steering_joint_->SetPosition(0, delta);
     }
 
-    double getAngle() { return delta_; }
+    double getAngle() const{ return delta_; }
     void printInfo() override {
         Wheel::printInfo();
         ROS_DEBUG("\t - STEERING");

@@ -56,7 +56,7 @@ class Axle {
     void getFy(const State &x, const Input &u, const double Fz, AxleTires &Fy, AxleTires *alpha = nullptr);
 
     void setSteering(double delta);
-    double getSteering();
+    double getSteering() const;
 
     void setLeverArm(double _car_length, double _weight_factor, double _width);
 

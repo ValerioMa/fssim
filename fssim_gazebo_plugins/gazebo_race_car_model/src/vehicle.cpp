@@ -55,6 +55,7 @@ Vehicle::Vehicle(physics::ModelPtr &_model,
 
     // Set Axle parameters
     front_axle_.setLeverArm(param_.kinematic.l, 1.0 - param_.kinematic.w_front, param_.kinematic.b_F);
+    
     rear_axle_.setLeverArm(param_.kinematic.l, param_.kinematic.w_front, param_.kinematic.b_R);
     front_axle_.setParam(param_);
     rear_axle_.setParam(param_);
@@ -113,7 +114,7 @@ void Vehicle::publish(const double sim_time) {
 
 void Vehicle::update(const double dt) {
     const double max_steer = 30*M_PI/180.0;
-    const double steer_tau = 0.05;
+    const double steer_tau = 0.1;
     //static ros::Time t_past = ros::Time::now();
     const auto t_now = ros::Time::now();
     //const double dt_new = (t_now - t_past).toSec();
@@ -144,7 +145,7 @@ void Vehicle::update(const double dt) {
 
     const double prev_steer  = front_axle_.getSteering();
     const double steer_speed = (input_.delta - prev_steer)/steer_tau;
-    double mean_steer  = prev_steer + steer_speed * dt/2.;    
+    double mean_steer  = prev_steer + steer_speed * dt/2.0;    
     double final_steer = prev_steer + steer_speed * dt;
     if(final_steer > max_steer){
         final_steer = max_steer;
@@ -165,7 +166,7 @@ void Vehicle::update(const double dt) {
     AxleTires FyF{}, FyR{}, alphaF{}, alphaR{};
     front_axle_.getFy(state_, input_, Fz, FyF, &alphaF);
     rear_axle_.getFy(state_, input_, Fz, FyR, &alphaR);
-    front_axle_.setSteering(input_.delta);
+    front_axle_.setSteering(final_steer);
 
     // Drivetrain Model
     const double Fx   = getFx(state_, input_);
@@ -190,8 +191,6 @@ void Vehicle::update(const double dt) {
     pub_ground_truth_.publish(state_pub);
 
     publishCarInfo(alphaF, alphaR, FyF, FyR, Fx);
-    input_.delta = final_steer;
-    front_axle_.setSteering(input_.delta);
 }
 
 void Vehicle::onRes(const fssim_common::ResStateConstPtr &msg) {
@@ -346,11 +345,15 @@ void Vehicle::publishCarInfo(const AxleTires &alphaF,
     // Publish Car Info
     fssim_common::CarInfo car_info;
     car_info.header.stamp = ros::Time::now();
-    
+
+    car_info.delta_measured             = front_axle_.getSteering();    
+    car_info.front_left_steering_angle  = car_info.delta_measured;
+    car_info.front_right_steering_angle = car_info.delta_measured;
+
     car_info.resistance_force = resistance_force;
     car_info.down_force = down_force;
     car_info.dc        = input_.dc;
-    car_info.delta     = input_.delta;
+    car_info.delta     = front_axle_.getSteering();
     car_info.alpha_f   = alphaF.avg();
     car_info.alpha_f_l = alphaF.left;
     car_info.alpha_f_r = alphaF.right;

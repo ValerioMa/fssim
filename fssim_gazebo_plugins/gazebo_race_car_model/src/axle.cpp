@@ -66,7 +66,7 @@ void Axle<WheelType>::printInfo() {
 }
 
 template<class WheelType>
-void Axle<WheelType>::getSlipAngles(const State &x, const Input &u, double &alphaL, double &alphaR) {
+void Axle<WheelType>::getSlipAngles(const State &x, const Input &u, double &alphaL, double &alphaR) {    
     double v_x = std::max(1.0, x.v_x);
     alphaL = std::atan((x.v_y + axle_factor_ * lever_arm_length_ * x.r) / (v_x - 0.5 * axle_width_ * x.r))
              - u.delta * wheel_l_.isSteering();
@@ -91,7 +91,7 @@ void Axle<WheelType>::getFy(const State &x, const Input &u, const double Fz, Axl
 }
 
 template<class WheelType>
-double Axle<WheelType>::getSteering(){
+double Axle<WheelType>::getSteering() const{
     return 0.5*( wheel_l_.getAngle() + wheel_r_.getAngle());
 }
 
